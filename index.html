@@ -30,13 +30,24 @@
 
         /* Chat Header */
         #chat-header {
-            background-color: #007bff;
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
+        background-color: #007bff;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    #chat-header .copyright {
+        position: absolute;
+        right: 10px;
+        font-size: 10px;
+        font-weight: normal;
+        opacity: 0.7;
+    }
 
         /* Chat Window */
         #chat-window {
@@ -122,12 +133,19 @@
             padding: 8px;
             text-align: center;
         }
+
+        .copyright {
+            font-size: 12px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
 
 <div id="chatbot">
-    <div id="chat-header">Chatbot</div>
+    <div id="chat-header">Chatbot </div>
+    <span class="copyright">© 2024 NutriAI | Data: Kaggle Indian Food Nutrition</span>
+
     <div id="chat-window">
         <!-- Chat messages will appear here -->
     </div>
@@ -136,113 +154,136 @@
         <button id="send-button" onclick="sendMessage()">Send</button>
     </div>
 </div>
-
+<script>
+    // Load API key from .env file
+    fetch('.env')
+        .then(response => response.text())
+        .then(envContent => {
+            const API_KEY = envContent.split('=')[1].trim();
+            window.API_KEY = API_KEY;
+        });
+</script>
 <script>
     async function sendMessage() {
-        const userInput = document.getElementById('chat-input').value.trim();
-        const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('chat-input').value.trim();
+    const chatWindow = document.getElementById('chat-window');
 
-        if (!userInput) {
-            alert('Please enter a message.');
-            return;
-        }
-
-        // Add user message to chat window
-        addMessage('user', userInput);
-
-        // Clear input field
-        document.getElementById('chat-input').value = '';
-
-        // Scroll to bottom of chat window
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-
-        // Add "Thinking..." message
-        const botThinking = addMessage('bot', 'Thinking...');
-
-        try {
-            // Send message to OpenAI API
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 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',
-                    'HTTP-Referer': '<YOUR_SITE_URL>', // Optional
-                    'X-Title': '<YOUR_SITE_NAME>' // Optional
-                },
-                body: JSON.stringify({
-                    model: "moonshotai/moonlight-16b-a3b-instruct:free",
-                    messages: [
-                        {
-                            "role": "Nutritionist",
-                            "content": "Assume the role of a Nutritionist. Develop customized meal plans for clients with specific health goals, such as weight loss, muscle gain, or managing chronic conditions like diabetes or hypertension. Consider factors like caloric needs, macronutrient ratios, micronutrient requirements, and portion sizes. Provide a variety of meal options and recipes to ensure nutritional adequacy and adherence to dietary guidelines."
-                        }
-                    ]
-                })
-            });
-
-            const data = await response.json();
-
-            // Clean up the response (remove \boxed{} and other LaTeX formatting)
-            let botResponse = data.choices[0].message.content;
-            botResponse = botResponse.replace(/\\boxed\{([^}]+)\}/g, '$1'); // Remove \boxed{}
-            botResponse = botResponse.replace(/\\[a-zA-Z]+\{([^}]+)\}/g, '$1'); // Remove other LaTeX commands
-
-            // Convert LaTeX table to HTML table (if applicable)
-            if (botResponse.includes('\\begin{array}')) {
-                botResponse = convertLaTeXTableToHTML(botResponse);
-            }
-
-            // Replace "Thinking..." with bot's response
-            botThinking.innerHTML = `<div class="message-content">${botResponse}</div>`;
-        } catch (error) {
-            // Handle errors
-            botThinking.innerHTML = `<div class="message-content">Error: ${error.message}</div>`;
-        }
-
-        // Scroll to bottom of chat window
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+    if (!userInput) {
+        alert('Please enter a message.');
+        return;
     }
 
-    // Function to add a message to the chat window
-    function addMessage(sender, content) {
-        const chatWindow = document.getElementById('chat-window');
-        const message = document.createElement('div');
-        message.className = `message ${sender}`;
-        message.innerHTML = `<div class="message-content">${content}</div>`;
-        chatWindow.appendChild(message);
-        return message.querySelector('.message-content');
-    }
+    // Add user message to chat window
+    addMessage('user', userInput);
 
-    // Function to convert LaTeX table to HTML table
-    function convertLaTeXTableToHTML(latexTable) {
-        // Remove LaTeX array environment
-        latexTable = latexTable.replace(/\\begin\{array\}(.*?)\\end\{array\}/s, '$1');
+    // Clear input field
+    document.getElementById('chat-input').value = '';
 
-        // Split rows by \hline
-        const rows = latexTable.split('\\hline').filter(row => row.trim() !== '');
+    // Scroll to bottom of chat window
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // Build HTML table
-        let htmlTable = '<table>';
-        rows.forEach(row => {
-            htmlTable += '<tr>';
-            // Split columns by &
-            const columns = row.split('&').map(col => col.trim());
-            columns.forEach(col => {
-                htmlTable += `<td>${col}</td>`;
-            });
-            htmlTable += '</tr>';
+    // Add "Thinking..." message
+    const botThinking = addMessage('bot', 'Thinking...');
+
+    try {
+        // Send message to OpenAI API
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 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',
+                'HTTP-Referer': '<YOUR_SITE_URL>', // Optional
+                'X-Title': '<YOUR_SITE_NAME>' // Optional
+            },
+            body: JSON.stringify({
+                model: "google/gemma-3-4b-it:free",
+                messages: [
+                    {
+                        "role": "user",
+                        "content": "Youre a specialist in nutrients, help to plan meal, ask questions like region, age, weight and etc give personlaized food plans. also keep output ALWAYS simple, no bold, no itallic, no hashtags, no comma, just as Easy as an uneducated person can read, pointwise answer and well formatted text, nothing else is expected, keep points and space between 1,2,3 or anything so it is more easy to read, like Point one then space(whitespace) point 2 and again, so text is properly and spacious for comman man" 
+                    }
+                ]
+            })
         });
-        htmlTable += '</table>';
 
-        return htmlTable;
+        // Check if the response is OK
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`API request failed with status ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+
+        // Log the full API response for debugging
+        console.log('API Response:', data);
+
+        // Check if data.choices exists
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid API response format: data.choices is undefined');
+        }
+
+        // Clean up the response (remove \boxed{} and other LaTeX formatting)
+        let botResponse = data.choices[0].message.content;
+        botResponse = botResponse.replace(/\\boxed\{([^}]+)\}/g, '$1'); // Remove \boxed{}
+        botResponse = botResponse.replace(/\\[a-zA-Z]+\{([^}]+)\}/g, '$1'); // Remove other LaTeX commands
+
+        // Convert LaTeX table to HTML table (if applicable)
+        if (botResponse.includes('\\begin{array}')) {
+            botResponse = convertLaTeXTableToHTML(botResponse);
+        }
+
+        // Replace "Thinking..." with bot's response
+        botThinking.innerHTML = `<div class="message-content">${botResponse}</div>`;
+    } catch (error) {
+        // Handle errors
+        console.error('Error:', error);
+        botThinking.innerHTML = `<div class="message-content">Error: ${error.message}</div>`;
     }
 
-    // Allow pressing "Enter" to send message
-    document.getElementById('chat-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
+    // Scroll to bottom of chat window
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Function to add a message to the chat window
+function addMessage(sender, content) {
+    const chatWindow = document.getElementById('chat-window');
+    const message = document.createElement('div');
+    message.className = `message ${sender}`;
+    message.innerHTML = `<div class="message-content">${content}</div>`;
+    chatWindow.appendChild(message);
+    return message.querySelector('.message-content');
+}
+
+// Function to convert LaTeX table to HTML table
+function convertLaTeXTableToHTML(latexTable) {
+    // Remove LaTeX array environment
+    latexTable = latexTable.replace(/\\begin\{array\}(.*?)\\end\{array\}/s, '$1');
+
+    // Split rows by \hline
+    const rows = latexTable.split('\\hline').filter(row => row.trim() !== '');
+
+    // Build HTML table
+    let htmlTable = '<table>';
+    rows.forEach(row => {
+        htmlTable += '<tr>';
+        // Split columns by &
+        const columns = row.split('&').map(col => col.trim());
+        columns.forEach(col => {
+            htmlTable += `<td>${col}</td>`;
+        });
+        htmlTable += '</tr>';
     });
+    htmlTable += '</table>';
+
+    return htmlTable;
+}
+
+// Allow pressing "Enter" to send message
+document.getElementById('chat-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
 </script>
 
 </body>
